@@ -1,34 +1,40 @@
 package ar.edu.itba.nosql;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import ar.edu.itba.nosql.entities.Trajectory;
+
+import java.sql.*;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * Hello world!
- *
- */
-public class App 
-{
-    public static void main( String[] args )
-    {
+public class App {
+    public static void main(String[] args) {
 
-        String url = "jdbc:postgresql://localhost:5432/postgres";
-        String user = "postgres";
-        String password = "root";
+        final String url = "jdbc:postgresql://node3.it.itba.edu.ar:5453/grupo1";
+        final String user = "grupo1";
+        final String password = "grupo1";
 
-        try (Connection con = DriverManager.getConnection(url, user, password);
-             Statement st = con.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * from trajectories where userid=0 order by tpos")) {
+        final double testingVelocity = 1.1;
 
-            while (rs.next()) {
-                System.out.println(rs.getString(1)+ "|" + rs.getString(2)+"|"+rs.getString(3));
+        try (Connection con = DriverManager.getConnection(url, user, password)) {
+            final Statement st = con.createStatement();
+            final ResultSet users = st.executeQuery("SELECT DISTINCT userId from trajectories");
+
+            while (users.next()) {
+                final PreparedStatement s = con.prepareStatement("SELECT * from trajectories where userid = ? order by tpos");
+                s.setInt(1, users.getInt(1));
+                final ResultSet userTrajectory = s.executeQuery();
+                final Queue<Trajectory> q = new ArrayDeque<>();
+
+                while (userTrajectory.next()) {
+                    final PreparedStatement s2 = con.prepareStatement("SELECT * from categories where venueid = ?");
+                    s2.setString(1, userTrajectory.getString(2));
+                    final ResultSet venue = s2.executeQuery();
+                    System.out.println(venue.getDouble(3) + " - " + venue.getDouble(4) + " - " + venue.getString(2));
+                    //Trajectory t = new Trajectory()
+                }
             }
-
         } catch (SQLException ex) {
 
             Logger lgr = Logger.getLogger(App.class.getName());
