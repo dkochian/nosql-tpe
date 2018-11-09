@@ -1,14 +1,21 @@
 package ar.edu.itba.nosql;
 
 import ar.edu.itba.nosql.entities.Trajectory;
+import ar.edu.itba.nosql.entities.Venue;
+import ar.edu.itba.nosql.utils.Point;
+import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class App {
+
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
+
     public static void main(String[] args) {
 
         //final String url = "jdbc:postgresql://node3.it.itba.edu.ar:5453/grupo1";
@@ -18,6 +25,8 @@ public class App {
 
         final double testingVelocity = 1.1;
 
+        final Queue<Trajectory> q = new ArrayDeque<>();
+
         try (Connection con = DriverManager.getConnection(url, user, password)) {
             final Statement st = con.createStatement();
             final ResultSet users = st.executeQuery("SELECT DISTINCT userId from trajectories");
@@ -26,20 +35,24 @@ public class App {
                 final PreparedStatement s = con.prepareStatement("SELECT * from trajectories where userid = ? order by tpos");
                 s.setInt(1, users.getInt(1));
                 final ResultSet userTrajectory = s.executeQuery();
-                final Queue<Trajectory> q = new ArrayDeque<>();
 
                 while (userTrajectory.next()) {
                     final PreparedStatement s2 = con.prepareStatement("SELECT * from categories where venueid = ?");
                     s2.setString(1, userTrajectory.getString(2));
                     final ResultSet venue = s2.executeQuery();
-                    System.out.println(venue.getDouble(3) + " - " + venue.getDouble(4) + " - " + venue.getString(2));
-                    //Trajectory t = new Trajectory()
+
+                    while(venue.next()){
+                        Venue auxVenue = new Venue(venue.getString(1), new Point<>(venue.getDouble(3),
+                                venue.getDouble(4)), venue.getString(2), venue.getString(5));
+                        q.add(new Trajectory(userTrajectory.getInt(1), auxVenue, new DateTime(userTrajectory.getDate(3)), userTrajectory.getInt(4)));
+
+                    }
                 }
             }
-        } catch (SQLException ex) {
-
-            Logger lgr = Logger.getLogger(App.class.getName());
-            lgr.log(Level.SEVERE, ex.getMessage(), ex);
+        } catch (SQLException e) {
+            logger.error(e.getMessage());
         }
+        /*while(!q.isEmpty())
+            System.out.println(q.poll());*/
     }
 }

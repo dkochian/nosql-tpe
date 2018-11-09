@@ -35,4 +35,14 @@ public class Trajectory {
     public int getTpos() {
         return tpos;
     }
+
+    @Override
+    public String toString() {
+        return "Trajectory{" +
+                "userId=" + userId +
+                ", venue=" + venue +
+                ", date=" + date +
+                ", tpos=" + tpos +
+                '}';
+    }
 }

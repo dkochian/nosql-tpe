@@ -34,4 +34,14 @@ public class Venue {
     public String getCategoryType() {
         return categoryType;
     }
+
+    @Override
+    public String toString() {
+        return "Venue{" +
+                "id='" + id + '\'' +
+                ", position=" + position +
+                ", category='" + category + '\'' +
+                ", categoryType='" + categoryType + '\'' +
+                '}';
+    }
 }
