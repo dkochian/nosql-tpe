@@ -2,6 +2,8 @@ package ar.edu.itba.nosql.entities;
 
 import ar.edu.itba.nosql.utils.Point;
 
+import java.util.Objects;
+
 public class Venue {
 
     private final String id;
@@ -33,6 +35,14 @@ public class Venue {
 
     public String getCategoryType() {
         return categoryType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Venue venue = (Venue) o;
+        return Objects.equals(id, venue.id);
     }
 
     @Override

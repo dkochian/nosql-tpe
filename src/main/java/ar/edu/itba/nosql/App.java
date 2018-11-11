@@ -63,7 +63,7 @@ public class App {
                 while (!q.isEmpty()) {
                     Trajectory current = q.poll();
 
-                    if (!previous.equals(current) && velocity > current.getVelocity(previous)) {
+                    if (!previous.getVenue().equals(current.getVenue()) && velocity > current.getVelocity(previous)) {
                         current.setTpos(++tpos);
                         userTrajectoryPrunned.add(current);
                         previous = current;
