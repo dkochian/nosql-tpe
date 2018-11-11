@@ -2,16 +2,20 @@ package ar.edu.itba.nosql.utils;
 
 import ar.edu.itba.nosql.entities.Trajectory;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Queue;
 
 public class OutputWriter {
+
+    public OutputWriter() {
+        final File file = new File("output");
+        if (!file.exists())
+            if (!file.mkdirs())
+                throw new RuntimeException("Couldn't create the output directory.");
+    }
 
     public void write(Queue<Trajectory> trajectoryPrunned) throws IOException {
         final String path = "output" + "/" + "prunned.tsv";
