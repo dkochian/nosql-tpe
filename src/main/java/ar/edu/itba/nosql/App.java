@@ -2,11 +2,13 @@ package ar.edu.itba.nosql;
 
 import ar.edu.itba.nosql.entities.Trajectory;
 import ar.edu.itba.nosql.entities.Venue;
+import ar.edu.itba.nosql.utils.OutputWriter;
 import ar.edu.itba.nosql.utils.Point;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -27,6 +29,9 @@ public class App {
         final double velocity = testingVelocity;
 
         final Queue<Trajectory> q = new ArrayDeque<>();
+
+        final OutputWriter outputWriter = new OutputWriter();
+        outputWriter.remove();
 
         try (Connection con = DriverManager.getConnection(url, user, password)) {
             final Statement st = con.createStatement();
@@ -64,12 +69,14 @@ public class App {
                         previous = current;
                     }
                 }
-
+                try {
+                    outputWriter.write(userTrajectoryPrunned);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         } catch (SQLException e) {
             logger.error(e.getMessage());
         }
-        /*while(!q.isEmpty())
-            System.out.println(q.poll());*/
     }
 }
