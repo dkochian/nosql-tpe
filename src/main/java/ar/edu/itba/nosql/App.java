@@ -24,6 +24,7 @@ public class App {
         final String password = "grupo1";
 
         final double testingVelocity = 1.1;
+        final double velocity = testingVelocity;
 
         final Queue<Trajectory> q = new ArrayDeque<>();
 
@@ -48,6 +49,22 @@ public class App {
 
                     }
                 }
+
+                final Queue<Trajectory> userTrajectoryPrunned = new ArrayDeque<>();
+
+                int tpos = 1;
+                Trajectory previous = q.poll();
+                userTrajectoryPrunned.add(previous);
+                while (!q.isEmpty()) {
+                    Trajectory current = q.poll();
+
+                    if (!previous.equals(current) && velocity > current.getVelocity(previous)) {
+                        current.setTpos(++tpos);
+                        userTrajectoryPrunned.add(current);
+                        previous = current;
+                    }
+                }
+
             }
         } catch (SQLException e) {
             logger.error(e.getMessage());

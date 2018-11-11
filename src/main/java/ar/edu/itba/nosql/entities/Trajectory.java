@@ -11,7 +11,7 @@ public class Trajectory {
 
     private final DateTime date;
 
-    private final int tpos;
+    private int tpos;
 
     public Trajectory(int userId, Venue venue, DateTime date, int tpos) {
         this.userId = userId;
@@ -34,6 +34,19 @@ public class Trajectory {
 
     public int getTpos() {
         return tpos;
+    }
+
+    public void setTpos(int tpos) {
+        this.tpos = tpos;
+    }
+
+    //hours
+    public double getTimeDifference(final Trajectory t) {
+        return (date.getMillis() - t.getDate().getMillis()) / (1000 * 60 * 60);
+    }
+
+    public double getVelocity(final Trajectory t) {
+        return venue.getDistance(t.getVenue())/getTimeDifference(t);
     }
 
     @Override
