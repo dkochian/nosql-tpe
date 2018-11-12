@@ -1,7 +1,6 @@
 package ar.edu.itba.nosql;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,10 +16,21 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 import org.graphframes.GraphFrame;
+import org.joda.time.DateTime;
 
 public class GraphFramesPopulation {
 
-    public static void main(String[] args) throws ParseException {
+    private static final int PARSE_TRJ_ID = 0;
+    private static final int PARSE_TRJ_USER_ID = 1;
+    private static final int PARSE_TRJ_VENUE_ID = 2;
+    private static final int PARSE_TRJ_DATE = 3;
+    private static final int PARSE_TRJ_TPOS = 4;
+
+    private static final int PARSE_VNU_ID = 0;
+    private static final int PARSE_VNU_CATEGORY = 1;
+    private static final int PARSE_VNU_CATTYPE = 4;
+
+    public static void main(String[] args) throws IOException {
 
         SparkSession sp = SparkSession.builder().appName("Population").getOrCreate();
         JavaSparkContext sparkContext= new JavaSparkContext(sp.sparkContext());
@@ -37,8 +47,10 @@ public class GraphFramesPopulation {
         sparkContext.close();
     }
 
+    //population
     //loads both files (trayectories and venues) and returns vertex and edges
-    private static Pair<Dataset<Row>, Dataset<Row>> Load(SQLContext sqlContext, JavaSparkContext sparkContext) {
+    private static Pair<Dataset<Row>, Dataset<Row>> Load(SQLContext sqlContext, JavaSparkContext sparkContext)
+            throws IOException {
 
         List<Row> stops = new ArrayList<>();
         List<Row> venues = new ArrayList<>();
@@ -50,8 +62,46 @@ public class GraphFramesPopulation {
         List<Row> subCategoryOf = new ArrayList<>();
 
 
+        File file = new File("/user/maperazzo/prunned.tsv");
+
+        BufferedReader br = new BufferedReader(new FileReader(file));
+
+        String st;
+        long prevUserId = -1;
+        long prevTrajId = -1;
+        while ((st = br.readLine()) != null) {
+            String[] splitted = st.split("\t");
+            stops.add(RowFactory.create(Long.parseLong(splitted[PARSE_TRJ_ID]), Long.parseLong(splitted[PARSE_TRJ_USER_ID]),
+                    DateTime.parse(splitted[PARSE_TRJ_DATE]), Long.parseLong(splitted[PARSE_TRJ_TPOS])));
+            isVenue.add(RowFactory.create(Long.parseLong(splitted[PARSE_TRJ_USER_ID]), Long.parseLong(splitted[PARSE_TRJ_VENUE_ID]),
+                    "isVenue"));
+
+            Long currentUserId = Long.parseLong(splitted[PARSE_TRJ_USER_ID]);
+            Long currentTrajId = Long.parseLong(splitted[PARSE_TRJ_ID]);
+            if (prevUserId != -1 && prevUserId == currentUserId)
+                trajStep.add(RowFactory.create(prevTrajId, currentTrajId, "trajStep"));
+
+            prevUserId = currentUserId;
+            prevTrajId = currentTrajId;
+        }
+
+        file = new File("/user/maperazzo/categories.csv");
+
+        br = new BufferedReader(new FileReader(file));
+
+        while ((st = br.readLine()) != null) {
+            String[] splitted = st.split(",");
+            //Nodes
+            venues.add(RowFactory.create(splitted[PARSE_VNU_ID]));
+            categories.add(RowFactory.create(splitted[PARSE_VNU_CATEGORY]));
+            category.add(RowFactory.create(splitted[PARSE_VNU_CATTYPE]));
+            //Relations
+            hasCategory.add(RowFactory.create(splitted[PARSE_VNU_ID], splitted[PARSE_VNU_CATEGORY], "hasCategory"));
+            subCategoryOf.add(RowFactory.create(splitted[PARSE_VNU_CATEGORY], splitted[PARSE_VNU_CATTYPE], "subCategoryOf"));
+        }
+
         Dataset<Row> stopsDF =
-                sqlContext.createDataFrame(sparkContext.parallelize(stops), CreateVertexStopSchema());
+                    sqlContext.createDataFrame(sparkContext.parallelize(stops), CreateVertexStopSchema());
 
         Dataset<Row> venuesDF =
                 sqlContext.createDataFrame(sparkContext.parallelize(venues), CreateVertexVenueSchema());
@@ -90,48 +140,11 @@ public class GraphFramesPopulation {
         return DataTypes.createStructType(vertFields);
     }
 
-
-    //population
-    public static ArrayList<Row> LoadVertices()
-    {
-        ArrayList<Row> vertList = new ArrayList<Row>();
-
-        for(long rec= 0; rec <= 9; rec++)
-        {
-            vertList.add(RowFactory.create( rec, rec  + ".html", rec%2==0?"A":"L"));
-        }
-
-        return vertList;
-    }
-
-    //population
-    public static  ArrayList<Row> LoadEdges() throws ParseException
-    {
-        ArrayList<Row> edges = new ArrayList<Row>();
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-
-
-        edges.add(RowFactory.create( 1L, 0L, "refersTo", new java.sql.Date(sdf.parse("10/10/2010").getTime() )));
-        edges.add(RowFactory.create( 1L, 2L, "refersTo", new java.sql.Date(sdf.parse("10/10/2010").getTime())));
-        edges.add(RowFactory.create( 2L, 0L, "refersTo", new java.sql.Date(sdf.parse("10/10/2010").getTime())));
-        edges.add(RowFactory.create( 3L, 2L, "refersTo", new java.sql.Date(sdf.parse("10/10/2010").getTime())));
-        edges.add(RowFactory.create( 3L, 6L, "refersTo", new java.sql.Date(sdf.parse("15/10/2010").getTime())));
-        edges.add(RowFactory.create( 4L, 3L, "refersTo", new java.sql.Date(sdf.parse("15/10/2010").getTime())));
-        edges.add(RowFactory.create( 5L, 4L, "refersTo", new java.sql.Date(sdf.parse("21/10/2010").getTime())));
-        edges.add(RowFactory.create( 6L, 4L, "refersTo", new java.sql.Date(sdf.parse("10/10/2010").getTime())));
-        edges.add(RowFactory.create( 7L, 6L, "refersTo", new java.sql.Date(sdf.parse("10/10/2010").getTime())));
-        edges.add(RowFactory.create( 7L, 8L, "refersTo", new java.sql.Date(sdf.parse("15/10/2010").getTime())));
-        edges.add(RowFactory.create( 8L, 5L, "refersTo", new java.sql.Date(sdf.parse("21/10/2010").getTime())));
-        edges.add(RowFactory.create( 8L, 6L, "refersTo", new java.sql.Date(sdf.parse("15/10/2010").getTime())));
-
-        return edges;
-    }
-
     // metadata
     public static StructType CreateVertexStopSchema()
     {
         List<StructField> vertFields = new ArrayList<StructField>();
-
+        vertFields.add(DataTypes.createStructField("id",DataTypes.LongType, false));
         vertFields.add(DataTypes.createStructField("userid",DataTypes.LongType, false));
         vertFields.add(DataTypes.createStructField("utctimestamp",DataTypes.DateType, false));
         vertFields.add(DataTypes.createStructField("tpos",DataTypes.LongType, false));
