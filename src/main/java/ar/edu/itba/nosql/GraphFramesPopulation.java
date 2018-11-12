@@ -5,12 +5,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.clearspring.analytics.util.Pair;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
@@ -20,33 +22,61 @@ public class GraphFramesPopulation {
 
     public static void main(String[] args) throws ParseException {
 
-        // SparkConf spark = new SparkConf().setAppName("Population);
         SparkSession sp = SparkSession.builder().appName("Population").getOrCreate();
         JavaSparkContext sparkContext= new JavaSparkContext(sp.sparkContext());
         SQLContext sqlContext = new SQLContext(sp);
 
-        // parallelize vertices and edges values
-        Dataset<Row> verticesDF =
-                sqlContext.createDataFrame(sparkContext.parallelize(LoadVertices()), CreateVertexSchema() );
-
-
-        Dataset<Row> edgesDF =
-                sqlContext.createDataFrame(sparkContext.parallelize(LoadEdges()), CreateEdgeSchema() );
-
-
+        Pair<Dataset<Row>, Dataset<Row>> graph = Load(sqlContext, sparkContext);
         // create the graph
-        GraphFrame myGraph = GraphFrame.apply(verticesDF, edgesDF);
+        GraphFrame myGraph = GraphFrame.apply(graph.left, graph.right);
 
         // in the driver
         myGraph.vertices().show();
         myGraph.edges().show();
 
         sparkContext.close();
-
     }
 
+    //loads both files (trayectories and venues) and returns vertex and edges
+    private static Pair<Dataset<Row>, Dataset<Row>> Load(SQLContext sqlContext, JavaSparkContext sparkContext) {
+
+        List<Row> stops = new ArrayList<>();
+        List<Row> venues = new ArrayList<>();
+        List<Row> categories = new ArrayList<>();
+        List<Row> category = new ArrayList<>();
+        List<Row> trajStep = new ArrayList<>();
+        List<Row> isVenue = new ArrayList<>();
+        List<Row> hasCategory = new ArrayList<>();
+        List<Row> subCategoryOf = new ArrayList<>();
 
 
+        Dataset<Row> stopsDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(stops), CreateVertexStopSchema());
+
+        Dataset<Row> venuesDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(venues), CreateVertexVenueSchema());
+
+        Dataset<Row> categoriesDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(categories), CreateVertexCategoriesSchema());
+
+        Dataset<Row> categoryDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(category), CreateVertexCategorySchema());
+
+        Dataset<Row> trajStepDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(trajStep), CreateEdgetrajStepSchema());
+
+        Dataset<Row> isVenueDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(isVenue), CreateEdgeisVenueSchema());
+
+        Dataset<Row> hasCategoryDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(hasCategory), CreateEdgehasCategorySchema());
+
+        Dataset<Row> subCategoryOfDF =
+                sqlContext.createDataFrame(sparkContext.parallelize(subCategoryOf), CreateEdgesubCategoryOfSchema());
+
+        return new Pair<>(stopsDF.union(venuesDF).union(categoriesDF).union(categoryDF),
+                trajStepDF.union(isVenueDF).union(hasCategoryDF).union(subCategoryOfDF));
+    }
 
     // metadata
     public static StructType CreateVertexSchema()
@@ -74,19 +104,6 @@ public class GraphFramesPopulation {
         return vertList;
     }
 
-    // metadata
-    public static StructType CreateEdgeSchema()
-    {
-        List<StructField> edgeFields = new ArrayList<StructField>();
-
-        edgeFields.add(DataTypes.createStructField("src",DataTypes.LongType, true));
-        edgeFields.add(DataTypes.createStructField("dst",DataTypes.LongType, true));
-        edgeFields.add(DataTypes.createStructField("label",DataTypes.StringType, true));
-        edgeFields.add(DataTypes.createStructField("date",DataTypes.DateType, true));
-
-        return DataTypes.createStructType(edgeFields);
-    }
-
     //population
     public static  ArrayList<Row> LoadEdges() throws ParseException
     {
@@ -110,6 +127,73 @@ public class GraphFramesPopulation {
         return edges;
     }
 
+    // metadata
+    public static StructType CreateVertexStopSchema()
+    {
+        List<StructField> vertFields = new ArrayList<StructField>();
 
+        vertFields.add(DataTypes.createStructField("userid",DataTypes.LongType, false));
+        vertFields.add(DataTypes.createStructField("utctimestamp",DataTypes.DateType, false));
+        vertFields.add(DataTypes.createStructField("tpos",DataTypes.LongType, false));
 
+        return DataTypes.createStructType(vertFields);
+    }
+
+    // metadata
+    public static StructType CreateVertexVenueSchema()
+    {
+        List<StructField> vertFields = new ArrayList<StructField>();
+
+        vertFields.add(DataTypes.createStructField("venueid",DataTypes.LongType, false));
+
+        return DataTypes.createStructType(vertFields);
+    }
+
+    // metadata
+    public static StructType CreateVertexCategoriesSchema()
+    {
+        List<StructField> vertFields = new ArrayList<StructField>();
+
+        vertFields.add(DataTypes.createStructField("venuecategory",DataTypes.StringType, false));
+
+        return DataTypes.createStructType(vertFields);
+    }
+
+    // metadata
+    public static StructType CreateVertexCategorySchema()
+    {
+        List<StructField> vertFields = new ArrayList<StructField>();
+
+        vertFields.add(DataTypes.createStructField("cattype",DataTypes.StringType, false));
+
+        return DataTypes.createStructType(vertFields);
+    }
+
+    // metadata
+    public static StructType CreateEdgeSchema(final DataType src, final DataType dest)
+    {
+        List<StructField> edgeFields = new ArrayList<StructField>();
+
+        edgeFields.add(DataTypes.createStructField("src", src, false));
+        edgeFields.add(DataTypes.createStructField("dst", dest, false));
+        edgeFields.add(DataTypes.createStructField("label", DataTypes.StringType, false));
+
+        return DataTypes.createStructType(edgeFields);
+    }
+
+    // metadata
+    public static StructType CreateEdgetrajStepSchema()
+    { return CreateEdgeSchema(DataTypes.LongType, DataTypes.LongType); }
+
+    // metadata
+    public static StructType CreateEdgeisVenueSchema()
+    { return CreateEdgeSchema(DataTypes.LongType, DataTypes.StringType); }
+
+    // metadata
+    public static StructType CreateEdgehasCategorySchema()
+    { return CreateEdgeSchema(DataTypes.StringType, DataTypes.StringType);}
+
+    // metadata
+    public static StructType CreateEdgesubCategoryOfSchema()
+    { return CreateEdgeSchema(DataTypes.StringType, DataTypes.StringType); }
 }
