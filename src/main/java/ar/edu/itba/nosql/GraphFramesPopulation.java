@@ -73,7 +73,7 @@ public class GraphFramesPopulation {
             String[] splitted = st.split("\t");
             stops.add(RowFactory.create(Long.parseLong(splitted[PARSE_TRJ_ID]), Long.parseLong(splitted[PARSE_TRJ_USER_ID]),
                     DateTime.parse(splitted[PARSE_TRJ_DATE]), Long.parseLong(splitted[PARSE_TRJ_TPOS])));
-            isVenue.add(RowFactory.create(Long.parseLong(splitted[PARSE_TRJ_USER_ID]), Long.parseLong(splitted[PARSE_TRJ_VENUE_ID]),
+            isVenue.add(RowFactory.create(Long.parseLong(splitted[PARSE_TRJ_USER_ID]), splitted[PARSE_TRJ_VENUE_ID],
                     "isVenue"));
 
             Long currentUserId = Long.parseLong(splitted[PARSE_TRJ_USER_ID]);
@@ -85,12 +85,12 @@ public class GraphFramesPopulation {
             prevTrajId = currentTrajId;
         }
 
-        file = new File("/user/maperazzo/categories.csv");
+        file = new File("/user/maperazzo/categories.tsv");
 
         br = new BufferedReader(new FileReader(file));
 
         while ((st = br.readLine()) != null) {
-            String[] splitted = st.split(",");
+            String[] splitted = st.split("\t");
             //Nodes
             venues.add(RowFactory.create(splitted[PARSE_VNU_ID]));
             categories.add(RowFactory.create(splitted[PARSE_VNU_CATEGORY]));
