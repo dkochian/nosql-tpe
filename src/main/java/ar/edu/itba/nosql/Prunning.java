@@ -12,11 +12,10 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.logging.Level;
 
-public class App {
+public class Prunning {
 
-    private static final Logger logger = LoggerFactory.getLogger(App.class);
+    private static final Logger logger = LoggerFactory.getLogger(Prunning.class);
 
     public static void main(String[] args) {
 
@@ -63,7 +62,7 @@ public class App {
                 while (!q.isEmpty()) {
                     Trajectory current = q.poll();
 
-                    if (!previous.getVenue().equals(current.getVenue()) && velocity > current.getVelocity(previous)) {
+                    if (!previous.getVenue().equals(current.getVenue()  ) && velocity > current.getVelocity(previous)) {
                         current.setTpos(++tpos);
                         userTrajectoryPrunned.add(current);
                         previous = current;
