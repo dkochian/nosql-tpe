@@ -62,7 +62,7 @@ public class GraphFramesPopulation {
         List<Row> subCategoryOf = new ArrayList<>();
 
 
-        File file = new File("/user/maperazzo/prunned.tsv");
+        File file = new File("/home/maperazzo/prunned.tsv");
 
         BufferedReader br = new BufferedReader(new FileReader(file));
 
@@ -85,7 +85,7 @@ public class GraphFramesPopulation {
             prevTrajId = currentTrajId;
         }
 
-        file = new File("/user/maperazzo/categories.tsv");
+        file = new File("/home/maperazzo/categories.tsv");
 
         br = new BufferedReader(new FileReader(file));
 
