@@ -23,6 +23,7 @@ let venues = await pool.query({
 });
 //console.log(venues.rows[4][0]);
 //return;
+let inserts = [];
 for (let i= 0;i<trajectories;++i) {
     for (let d = new Date(startDate); d<endDate;d.setDate(d.getDate()+1)){
         let visits = random.uniformInt(minVisitsPerDay,maxVisitsPerDay)();
@@ -45,19 +46,28 @@ for (let i= 0;i<trajectories;++i) {
             } while (d<prevd);
             //console.log("listo");
             const daux = d.toISOString().replace(/T/, ' ').replace(/\..+/, '');
-            //console.log(d);
-            let venueid = venues.rows[random.uniformInt(0,venues.rowCount)()][0];
-            const q = await pool.query('insert into public.trajectories(userid,venueid,utctimestamp,tpos) values ($1, $2, $3, $4)',[i,venueid,daux,tposs[i]],(err,res) => {
-                //console.log(err,res);
+            //console.log(venues.rowCount);
+            const venueid = venues.rows[random.uniformInt(0,venues.rowCount-1)()][0];
+            //console.log
+            /*const q = await pool.query('insert into public.'+process.argv[11]+'(userid,venueid,utctimestamp,tpos) values ($1, $2, $3, $4)',[i,venueid,daux,tposs[i]],(err,res) => {
+                //console.log(err);
                 
                     
-            });
+            });*/
+            inserts.push([i,venueid,daux,tposs[i]]);
             tposs[i]++;
             
 
         }
     }
 }
+
+const q = await pool.query('insert into public.'+process.argv[11]+'(userid,venueid,utctimestamp,tpos) values '+inserts.map(v => '('+v[0]+',\''+v[1]+'\',\''+v[2]+'\','+v[3]+')').reduce((acc,val)=>acc+", \n"+val),(err,res) => {
+  console.log(err);
+  
+      
+});
+//console.log('insert into public.'+process.argv[11]+'(userid,venueid,utctimestamp,tpos) values '+inserts.map(v => '('+v[0]+',\''+v[1]+'\',\''+v[2]+'\','+v[3]+')').reduce((acc,val)=>acc+", \n"+val));
 //pool.end()
 }
 main()

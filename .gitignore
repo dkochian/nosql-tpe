@@ -15,7 +15,7 @@
 *.iml
 *.iws
 /out/
-
+node/node_modules/*
 # Package Files #
 *.jar
 *.war
@@ -30,3 +30,4 @@
 # Configuration/input files/output
 *.json
 *.tsv
+
