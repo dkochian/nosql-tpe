@@ -5,6 +5,8 @@ import org.joda.time.DateTime;
 
 public class Trajectory {
 
+    private final long id;
+
     private final int userId;
 
     private final Venue venue;
@@ -13,11 +15,16 @@ public class Trajectory {
 
     private int tpos;
 
-    public Trajectory(int userId, Venue venue, DateTime date, int tpos) {
+    public Trajectory(long id, int userId, Venue venue, DateTime date, int tpos) {
+        this.id = id;
         this.userId = userId;
         this.venue = venue;
         this.date = date;
         this.tpos = tpos;
+    }
+
+    public long getId() {
+        return id;
     }
 
     public int getUserId() {
