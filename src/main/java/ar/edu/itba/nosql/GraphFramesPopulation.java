@@ -47,7 +47,7 @@ public class GraphFramesPopulation {
         SQLContext sqlContext = new SQLContext(sp);
 
         Pair<Dataset<Row>, Dataset<Row>> files = LoadVenuesAndTrajectories(sqlContext);
-        
+
         List<Row> nodes = new ArrayList<>();
         List<Row> edges = new ArrayList<>();
 
@@ -65,8 +65,8 @@ public class GraphFramesPopulation {
         GraphFrame myGraph = GraphFrame.apply(nodesDF, edgesDF);
 
         // in the driver
-        myGraph.vertices().show();
-        myGraph.edges().show();
+        myGraph.vertices().filter("label='Category'").show();
+        myGraph.edges().filter("label='hasCategory'").where("src < 40").show();
 
         sparkContext.close();
     }
@@ -118,15 +118,22 @@ public class GraphFramesPopulation {
 
         for (Row v : venues.collectAsList()) {
             nodes.add(RowFactory.create(getVenueId(v.getString(PARSE_VNU_ID)), v.getString(PARSE_VNU_ID), null, null, null, "Venues"));
-            nodes.add(RowFactory.create(getCategoryId(v.getString(PARSE_VNU_CATEGORY)), v.getString(PARSE_VNU_CATEGORY),
-                    null, null, null, "Categories"));
-            nodes.add(RowFactory.create(getCattypeId(v.getString(PARSE_VNU_CATTYPE)), v.getString(PARSE_VNU_CATTYPE),
-                    null, null, null, "Category"));
+
+            if (!categoriesId.containsKey(v.getString(PARSE_VNU_CATEGORY))) {
+
+                if (!cattypeId.containsKey(v.getString(PARSE_VNU_CATTYPE)))
+                    nodes.add(RowFactory.create(getCattypeId(v.getString(PARSE_VNU_CATTYPE)), v.getString(PARSE_VNU_CATTYPE),
+                            null, null, null, "Category"));
+
+                nodes.add(RowFactory.create(getCategoryId(v.getString(PARSE_VNU_CATEGORY)), v.getString(PARSE_VNU_CATEGORY),
+                        null, null, null, "Categories"));
+
+                edges.add(RowFactory.create(getCategoryId(v.getString(PARSE_VNU_CATEGORY)),
+                        getCattypeId(v.getString(PARSE_VNU_CATTYPE)), "subCategoryOf"));
+            }
 
             edges.add(RowFactory.create(getVenueId(v.getString(PARSE_VNU_ID)), getCategoryId(v.getString(PARSE_VNU_CATEGORY)),
                     "hasCategory"));
-            edges.add(RowFactory.create(getCategoryId(v.getString(PARSE_VNU_CATEGORY)),
-                    getCattypeId(v.getString(PARSE_VNU_CATTYPE)), "subCategoryOf"));
         }
     }
 
