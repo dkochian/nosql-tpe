@@ -42,15 +42,20 @@ public class GraphFramesQueryExecutor {
     }
 
     private static Dataset<Row> Query1(GraphFrame graph) {
-        Dataset<Row> query1 = graph.find("(s1)-[]->(s2) ; (s2)-[]->(s3) ; " +
-                "(s1)-[]->(v1) ; (s2)-[]->(v2) ; (s3)-[]->(v3) ; " +
-                "(v1)-[]->(cat1) ; (v2)-[]->(cat2) ; (v3)-[]->(cat3); " +
-                "(cat1)-[]->(c1); (cat2)-[]->(c2) ; (cat3)-[]->(c3)")
-                .filter("s1.label='Stop' and s2.label='Stop' and s3.label='Stop' " +
-                        "and v1.label='Venues' and v2.label='Venues' and v3.label='Venues' " +
-                        "and cat1.label='Categories' and cat2.label='Categories' and cat3.label='Categories'" +
-                        "and c1.label='Category' and c2.label='Category' and c3.label='Category'" +
-                        "and c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'")
+        Dataset<Row> query1 = graph.find("(s1)-[e11]->(v1); (v1)-[e12]->(cat1); (cat1)-[e13]->(c1); " +
+                "(s2)-[e21]->(v2); (v2)-[e22]->(cat2); (cat2)-[e23]->(c2); " +
+                "(s3)-[e31]->(v3); (v3)-[e32]->(cat3); (cat3)-[e33]->(c3); " +
+                "(s1)-[e1]->(s2); (s2)-[e2]->(s3)")
+                .filter("e11.label='isVenue' and e21.label='isVenue' and e31.label='isVenue'")
+                .filter("e12.label='hasCategory' and e22.label='hasCategory' and e32.label='hasCategory'")
+                .filter("e13.label='subCategoryOf' and e23.label='subCategoryOf' and e33.label='subCategoryOf'")
+                .filter("e1.label='trajStep' and e2.label='trajStep'")
+                .filter("s1.label='Stop' and s2.label='Stop' and s3.label='Stop'")
+                .filter("v1.label='Venues' and v2.label='Venues' and v3.label='Venues'")
+                .filter("cat1.label='Categories' and cat2.label='Categories' and cat3.label='Categories'")
+                .filter("c1.label='Category' and c2.label='Category' and c3.label='Category'")
+                .filter("c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'")
+                .filter("e12.label='hasCategory' and e21.label='hasCategory' and e31.label='hasCategory'")
                 .distinct()
                 .groupBy("s1.userId")
                 .agg(collect_list("s1.tpos").alias("from"))
