@@ -64,9 +64,30 @@ public class GraphFramesPopulation {
         // create the graph
         GraphFrame myGraph = GraphFrame.apply(nodesDF, edgesDF);
 
-        // in the driver
-        myGraph.vertices().filter("label='Category'").show();
-        myGraph.edges().filter("label='hasCategory'").where("src < 40").show();
+
+        //QUERY 2
+        Dataset<Row> start = myGraph.find("(s1)-[e11]->(v1); (v1)-[e12]->(c1); (c1)-[e13]->(cs1)")
+                .filter("s1.label='Stop'")
+                .filter("e11.label='isVenue'")
+                .filter("v1.label='Venues'")
+                .filter("c1.label='Categories'")
+                .filter("cs1.label='Category'")
+                .filter("cs1.secondId='Home'")
+                .selectExpr("s1.userId","s1.utctimestamp as timestart","s1.tpos as posstart")
+                .distinct();
+        Dataset<Row> end = myGraph.find("(s1)-[e11]->(v1); (v1)-[e12]->(c1); (c1)-[e13]->(cs1)")
+                .filter("s1.label='Stop'")
+                .filter("v1.label='Venues'")
+                .filter("c1.label='Categories'")
+                .filter("cs1.label='Category'")
+                .filter("cs1.secondId='Airport'")
+                .selectExpr("s1.userId","s1.utctimestamp as timeend","s1.tpos as posend")
+                .distinct();
+        start.join(end,"userId")
+                .filter("posend>posstart")
+                .filter("timestart=timeend")
+                .show((int)(start.count()*end.count()));
+        //END QUERY 2
 
         sparkContext.close();
     }

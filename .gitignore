@@ -15,6 +15,7 @@
 *.iml
 *.iws
 /out/
+/target/
 node/node_modules/*
 # Package Files #
 *.jar
