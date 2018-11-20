@@ -103,9 +103,11 @@ public class GraphFramesPopulation {
                         "and v1.label='Venues' and v2.label='Venues' and v3.label='Venues' " +
                         "and cat1.label='Categories' and cat2.label='Categories' and cat3.label='Categories'" +
                         "and c1.label='Category' and c2.label='Category' and c3.label='Category'" +
-                        "and c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'");
-        //.groupBy("s1.userId")
-        //select + collect on tpos?;
+                        "and c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'")
+                .distinct()
+                //.groupBy("s1.userId")
+                //select + collect on tpos?
+                ;
 
         return null;
     }
