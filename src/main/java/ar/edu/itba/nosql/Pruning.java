@@ -29,26 +29,20 @@ public class Pruning {
         final Queue<Trajectory> q = new ArrayDeque<>();
 
         final OutputWriter outputWriter = new OutputWriter();
-        final List<ResultSet> userList = new ArrayList<>();
         outputWriter.remove();
 
         try (Connection con = DriverManager.getConnection(configuration.getUrl(), configuration.getUser(),
                 configuration.getPassword())) {
 
-            final PreparedStatement st = con.prepareStatement("SELECT DISTINCT userId from ?");
-            st.setString(1, configuration.getName());
+            final PreparedStatement st = con.prepareStatement("SELECT DISTINCT userId from " + configuration.getTableName());
 
             final ResultSet userRS = st.executeQuery();
 
-            while (userRS.next())
-                userList.add(userRS);
-
-            userList.forEach(users -> {
+            while (userRS.next()) {
                 try {
                     final PreparedStatement s;
-                    s = con.prepareStatement("SELECT * from ? where userid = ? order by tpos");
-                    s.setString(1, configuration.getName());
-                    s.setInt(2, users.getInt(1));
+                    s = con.prepareStatement("SELECT * from " + configuration.getTableName() + " where userid = ? order by tpos");
+                    s.setInt(1, userRS.getInt(1));
                     final ResultSet userTrajectory = s.executeQuery();
 
                     while (userTrajectory.next()) {
@@ -59,7 +53,7 @@ public class Pruning {
                         while (venue.next()) {
                             Venue auxVenue = new Venue(venue.getString(1), new Point<>(venue.getDouble(3),
                                     venue.getDouble(4)), venue.getString(2), venue.getString(5));
-                            q.add(new Trajectory(userTrajectory.getLong(1), userTrajectory.getInt(2), auxVenue, new DateTime(userTrajectory.getDate(4)), userTrajectory.getInt(5)));
+                            q.add(new Trajectory(userTrajectory.getLong(2), userTrajectory.getInt(1), auxVenue, new DateTime(userTrajectory.getDate(3)), userTrajectory.getLong(4)));
 
                         }
                     }
@@ -79,14 +73,14 @@ public class Pruning {
                         }
                     }
                     try {
-                        outputWriter.write(userTrajectoryPruned);
+                        outputWriter.write(userTrajectoryPruned, configuration.getTableName());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-            });
+            }
         } catch (SQLException e) {
             logger.error(e.getMessage());
         }

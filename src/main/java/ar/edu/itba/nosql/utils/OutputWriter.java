@@ -17,8 +17,8 @@ public class OutputWriter {
                 throw new RuntimeException("Couldn't create the output directory.");
     }
 
-    public void write(Queue<Trajectory> trajectoryPrunned) throws IOException {
-        final String path = "output" + "/" + "prunned.tsv";
+    public void write(Queue<Trajectory> trajectoryPrunned, String tableName) throws IOException {
+        final String path = "output" + "/" + "prunned_" + tableName + ".tsv";
         try (final PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(path, true)))) {
             for (Trajectory t : trajectoryPrunned)
                 printWriter
