@@ -7,15 +7,10 @@ import java.util.Map;
 
 import org.apache.commons.math3.util.Pair;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
-import org.apache.spark.sql.RowFactory;
-import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
-import org.graphframes.GraphFrame;
 
 
 public class GraphFramesPopulation {
@@ -38,6 +33,10 @@ public class GraphFramesPopulation {
     private static final Map<String, Long> categoriesId = new HashMap<>();
     private static final Map<String, Long> cattypeId = new HashMap<>();
 
+    private static final String TRAJECTORIES_FILE_NAME_INPUT = "prunned.tsv";
+    private static final String VENUES_FILE_NAME_INPUT = "categories.tsv";
+
+    private static final String FILE_NAME_OUTPUT = "Trajectories_testing";
 
 
     public static void main(String[] args) {
@@ -61,55 +60,9 @@ public class GraphFramesPopulation {
         Dataset<Row> edgesDF =
                 sqlContext.createDataFrame(sparkContext.parallelize(edges), CreateEdgeSchema());
 
-        // create the graph
-        GraphFrame myGraph = GraphFrame.apply(nodesDF, edgesDF);
-        // in the driver
-        myGraph.vertices().filter("label='Stop'").show();
-        myGraph.edges().show();
+        write(nodesDF, edgesDF);
 
         sparkContext.close();
-    }
-
-
-    private static Dataset<Row> Query2(GraphFrame graph) {
-        Dataset<Row> start = graph.find("(s1)-[e11]->(v1); (v1)-[e12]->(c1); (c1)-[e13]->(cs1)")
-                .filter("s1.label='Stop'")
-                .filter("e11.label='isVenue'")
-                .filter("v1.label='Venues'")
-                .filter("c1.label='Categories'")
-                .filter("cs1.label='Category'")
-                .filter("cs1.secondId='Home'")
-                .selectExpr("s1.userId","s1.utctimestamp as timestart","s1.tpos as posstart")
-                .distinct();
-        Dataset<Row> end = graph.find("(s1)-[e11]->(v1); (v1)-[e12]->(c1); (c1)-[e13]->(cs1)")
-                .filter("s1.label='Stop'")
-                .filter("v1.label='Venues'")
-                .filter("c1.label='Categories'")
-                .filter("cs1.label='Category'")
-                .filter("cs1.secondId='Airport'")
-                .selectExpr("s1.userId","s1.utctimestamp as timeend","s1.tpos as posend")
-                .distinct();
-        return start.join(end,"userId")
-                .filter("posend>posstart")
-                .filter("timestart=timeend");
-
-    }
-    private static Dataset<Row> Query1(GraphFrame graph) {
-        Dataset<Row> query1 = graph.find("(s1)-[]->(s2) ; (s2)-[]->(s3) ; " +
-                "(s1)-[]->(v1) ; (s2)-[]->(v2) ; (s3)-[]->(v3) ; " +
-                "(v1)-[]->(cat1) ; (v2)-[]->(cat2) ; (v3)-[]->(cat3); " +
-                "(cat1)-[]->(c1); (cat2)-[]->(c2) ; (cat3)-[]->(c3)")
-                .filter("s1.label='Stop' and s2.label='Stop' and s3.label='Stop' " +
-                        "and v1.label='Venues' and v2.label='Venues' and v3.label='Venues' " +
-                        "and cat1.label='Categories' and cat2.label='Categories' and cat3.label='Categories'" +
-                        "and c1.label='Category' and c2.label='Category' and c3.label='Category'" +
-                        "and c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'")
-                .distinct()
-                //.groupBy("s1.userId")
-                //select + collect on tpos?
-                ;
-
-        return null;
     }
 
     private static Pair<Dataset<Row>, Dataset<Row>> LoadVenuesAndTrajectories(SQLContext sqlContext) {
@@ -130,13 +83,18 @@ public class GraphFramesPopulation {
 
         Dataset<Row> trajectories = sqlContext.read().format("csv").option("delimiter","\t").option("header", "true")
                 .schema(trajectorySchema)
-                .load("hdfs:///user/maperazzo/prunned.tsv");
+                .load("hdfs:///user/maperazzo/" + TRAJECTORIES_FILE_NAME_INPUT);
 
         Dataset<Row> venues = sqlContext.read().format("csv").option("delimiter","\t").option("header", "true")
                 .schema(venueSchema)
-                .load("hdfs:///user/maperazzo/categories.tsv");
+                .load("hdfs:///user/maperazzo/" + VENUES_FILE_NAME_INPUT);
 
         return new Pair(trajectories, venues);
+    }
+
+    private static void write (Dataset<Row> nodes, Dataset<Row> edges) {
+        nodes.write().mode(SaveMode.Overwrite).parquet("hdfs:///user/maperazzo/" + FILE_NAME_OUTPUT + "_nodes");
+        edges.write().mode(SaveMode.Overwrite).parquet("hdfs:///user/maperazzo/" + FILE_NAME_OUTPUT + "_edges");
     }
 
     private static final void PopulateUsingTrajectories(List<Row> nodes, List<Row> edges, Dataset<Row> trajectories) {
