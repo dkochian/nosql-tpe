@@ -7,9 +7,13 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.expressions.UserDefinedFunction;
+import org.apache.spark.sql.types.DataTypes;
 import org.graphframes.GraphFrame;
 
 import static org.apache.spark.sql.functions.collect_list;
+import static org.apache.spark.sql.functions.max;
+import static org.apache.spark.sql.functions.udf;
 
 
 public class GraphFramesQueryExecutor {
@@ -26,7 +30,7 @@ public class GraphFramesQueryExecutor {
 
         GraphFrame graph = GraphFrame.apply(nodesAndEdges.getKey(), nodesAndEdges.getValue());
 
-        Query1(graph).show(Integer.MAX_VALUE);
+        Query4(graph).show(Integer.MAX_VALUE);
 
         sparkContext.close();
     }
@@ -76,6 +80,34 @@ public class GraphFramesQueryExecutor {
         return start.join(end,"userId")
                 .filter("posend>posstart")
                 .filter("timestart=timeend");
+
+    }
+
+    private static Dataset<Row> Query4(GraphFrame graph) {
+
+        Dataset<Row> start = graph.vertices().filter("label = 'Stop'")
+                .selectExpr("userId","utctimestamp as timestart","tpos as posstart");
+        //start.show(Integer.MAX_VALUE);
+        Dataset<Row> end = graph.vertices().filter("label = 'Stop'")
+                .selectExpr("userId","utctimestamp as timeend","tpos as posend");
+        //end.show(Integer.MAX_VALUE);
+        Dataset<Row> longestLength = start.join(end,"userId")
+                .filter("posend>posstart")
+                .filter("timestart=timeend")
+                .selectExpr("userId","posend-posstart as length")
+                .groupBy("userId")
+                .agg(max("length").alias("maxLength"));
+        //longestLength.show(Integer.MAX_VALUE);
+        return start.join(end,"userId")
+                .filter("posend>posstart")
+                .filter("timestart=timeend")
+                .selectExpr("userId","timestart as time","posstart","posend","posend-posstart as length")
+                .join(longestLength,"userId")
+                .filter("length>=maxLength")
+                .selectExpr("userId","time","posstart","posend");
+
+
+
 
     }
 }
