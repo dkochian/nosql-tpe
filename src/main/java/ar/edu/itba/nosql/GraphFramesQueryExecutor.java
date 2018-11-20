@@ -7,13 +7,10 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.expressions.UserDefinedFunction;
-import org.apache.spark.sql.types.DataTypes;
 import org.graphframes.GraphFrame;
 
 import static org.apache.spark.sql.functions.collect_list;
 import static org.apache.spark.sql.functions.max;
-import static org.apache.spark.sql.functions.udf;
 
 
 public class GraphFramesQueryExecutor {
