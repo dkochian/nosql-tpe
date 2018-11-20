@@ -81,11 +81,11 @@ public class GraphFramesPopulation {
                 DataTypes.createStructField("latitude",DataTypes.DoubleType, false),
                 DataTypes.createStructField("cattype",DataTypes.StringType, false)});
 
-        Dataset<Row> trajectories = sqlContext.read().format("csv").option("delimiter","\t").option("header", "true")
+        Dataset<Row> trajectories = sqlContext.read().format("csv").option("delimiter","\t").option("header", "false")
                 .schema(trajectorySchema)
                 .load("hdfs:///user/maperazzo/" + TRAJECTORIES_FILE_NAME_INPUT);
 
-        Dataset<Row> venues = sqlContext.read().format("csv").option("delimiter","\t").option("header", "true")
+        Dataset<Row> venues = sqlContext.read().format("csv").option("delimiter","\t").option("header", "false")
                 .schema(venueSchema)
                 .load("hdfs:///user/maperazzo/" + VENUES_FILE_NAME_INPUT);
 
@@ -139,7 +139,7 @@ public class GraphFramesPopulation {
     // metadata
     private static StructType CreateVertexSchema()
     {
-        List<StructField> vertFields = new ArrayList<StructField>();
+        List<StructField> vertFields = new ArrayList<>();
         vertFields.add(DataTypes.createStructField("id", DataTypes.LongType, false));
         vertFields.add(DataTypes.createStructField("secondId", DataTypes.StringType, true));
         vertFields.add(DataTypes.createStructField("userId",DataTypes.LongType, true));
@@ -153,7 +153,7 @@ public class GraphFramesPopulation {
     // metadata
     private static StructType CreateEdgeSchema()
     {
-        List<StructField> edgeFields = new ArrayList<StructField>();
+        List<StructField> edgeFields = new ArrayList<>();
 
         edgeFields.add(DataTypes.createStructField("src", DataTypes.LongType, false));
         edgeFields.add(DataTypes.createStructField("dst", DataTypes.LongType, false));

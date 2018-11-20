@@ -9,6 +9,8 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
 import org.graphframes.GraphFrame;
 
+import static org.apache.spark.sql.functions.collect_list;
+
 
 public class GraphFramesQueryExecutor {
 
@@ -22,14 +24,9 @@ public class GraphFramesQueryExecutor {
 
         Pair<Dataset<Row>, Dataset<Row>> nodesAndEdges = LoadNodesAndEdges(sqlContext);
 
-        //create the graph
         GraphFrame graph = GraphFrame.apply(nodesAndEdges.getKey(), nodesAndEdges.getValue());
 
-        // in the driver
-        graph.vertices().filter("label='Stop'").show();
-        graph.edges().show();
-
-        Query2(graph);
+        Query1(graph).show(Integer.MAX_VALUE);
 
         sparkContext.close();
     }
@@ -51,11 +48,11 @@ public class GraphFramesQueryExecutor {
                         "and c1.label='Category' and c2.label='Category' and c3.label='Category'" +
                         "and c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'")
                 .distinct()
-                //.groupBy("s1.userId")
-                //select + collect on tpos?
-                ;
+                .groupBy("s1.userId")
+                .agg(collect_list("s1.tpos").alias("from"))
+                .select("userId", "from");
 
-        return null;
+        return query1;
     }
 
     private static Dataset<Row> Query2(GraphFrame graph) {
