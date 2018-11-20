@@ -65,10 +65,26 @@ public class GraphFramesPopulation {
         GraphFrame myGraph = GraphFrame.apply(nodesDF, edgesDF);
 
         // in the driver
-        myGraph.vertices().filter("label='Category'").show();
-        myGraph.edges().filter("label='hasCategory'").where("src < 40").show();
+        myGraph.vertices().filter("label='Stop'").show();
+        myGraph.edges().show();
 
         sparkContext.close();
+    }
+
+    private static Dataset<Row> Query1(GraphFrame graph) {
+        Dataset<Row> query1 = graph.find("(s1)-[]->(s2) ; (s2)-[]->(s3) ; " +
+                "(s1)-[]->(v1) ; (s2)-[]->(v2) ; (s3)-[]->(v3) ; " +
+                "(v1)-[]->(cat1) ; (v2)-[]->(cat2) ; (v3)-[]->(cat3); " +
+                "(cat1)-[]->(c1); (cat2)-[]->(c2) ; (cat3)-[]->(c3)")
+                .filter("s1.label='Stop' and s2.label='Stop' and s3.label='Stop' " +
+                        "and v1.label='Venues' and v2.label='Venues' and v3.label='Venues' " +
+                        "and cat1.label='Categories' and cat2.label='Categories' and cat3.label='Categories'" +
+                        "and c1.label='Category' and c2.label='Category' and c3.label='Category'" +
+                        "and c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'");
+        //.groupBy("s1.userId")
+        //select + collect on tpos?;
+
+        return null;
     }
 
     private static Pair<Dataset<Row>, Dataset<Row>> LoadVenuesAndTrajectories(SQLContext sqlContext) {
