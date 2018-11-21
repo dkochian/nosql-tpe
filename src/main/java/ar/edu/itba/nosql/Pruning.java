@@ -13,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 
 public class Pruning {
@@ -53,7 +51,7 @@ public class Pruning {
                         while (venue.next()) {
                             Venue auxVenue = new Venue(venue.getString(1), new Point<>(venue.getDouble(3),
                                     venue.getDouble(4)), venue.getString(2), venue.getString(5));
-                            q.add(new Trajectory(userTrajectory.getLong(2), userTrajectory.getInt(1), auxVenue, new DateTime(userTrajectory.getDate(3)), userTrajectory.getLong(4)));
+                            q.add(new Trajectory(userTrajectory.getLong(5), userTrajectory.getInt(1), auxVenue, new DateTime(userTrajectory.getDate(3)), userTrajectory.getLong(4)));
 
                         }
                     }

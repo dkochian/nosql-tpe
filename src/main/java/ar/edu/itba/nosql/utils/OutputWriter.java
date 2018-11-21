@@ -10,6 +10,8 @@ import java.util.Queue;
 
 public class OutputWriter {
 
+    private int counter = 0;
+
     public OutputWriter() {
         final File file = new File("output");
         if (!file.exists())
@@ -22,6 +24,8 @@ public class OutputWriter {
         try (final PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(path, true)))) {
             for (Trajectory t : trajectoryPrunned)
                 printWriter
+                        .append(String.valueOf(t.getId()))
+                        .append("\t")
                         .append(String.valueOf(t.getUserId()))
                         .append("\t")
                         .append(String.valueOf(t.getVenue().getId()))
@@ -31,7 +35,8 @@ public class OutputWriter {
                         .append(String.valueOf(t.getTpos()))
                         .append("\r\n");
 
-            printWriter.flush();
+            if(counter++ % 1000 == 0)
+                printWriter.flush();
         }
     }
 
