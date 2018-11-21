@@ -2,7 +2,7 @@ package ar.edu.itba.nosql.entities;
 
 public class Configuration {
 
-    private final String name;
+    private final String tableName;
 
     private final int userAmount;
 
@@ -17,18 +17,18 @@ public class Configuration {
     private final String password;
 
     public Configuration() {
-        name = "Master of the puppets.txt";
+        tableName = "trajectoriesss";
         userAmount = 1000;
         visitedVenues = 100;
-        velocity = 1.0;
+        velocity = 36.0;
 
         url = "jdbc:postgresql://127.0.0.1:5453/grupo1"; // "jdbc:postgresql://node3.it.itba.edu.ar:5453/grupo1";
         user = "grupo1";
         password = "grupo1";
     }
 
-    public Configuration(String name, int userAmount, int visitedVenues, double velocity, String url, String user, String password) {
-        this.name = name;
+    public Configuration(String tableName, int userAmount, int visitedVenues, double velocity, String url, String user, String password) {
+        this.tableName = tableName;
         this.userAmount = userAmount;
         this.visitedVenues = visitedVenues;
         this.velocity = velocity;
@@ -37,8 +37,8 @@ public class Configuration {
         this.password = password;
     }
 
-    public String getName() {
-        return name;
+    public String getTableName() {
+        return tableName;
     }
 
     public int getUserAmount() {

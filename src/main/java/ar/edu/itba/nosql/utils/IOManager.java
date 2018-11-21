@@ -10,8 +10,8 @@ import java.io.*;
 
 public class IOManager {
 
-    private static final String FILENAME = "config.json";
     private static final Logger logger = LoggerFactory.getLogger(IOManager.class);
+    private static final String FILENAME = "config.json";
 
     public static Configuration getConfiguration() {
         Configuration configuration;

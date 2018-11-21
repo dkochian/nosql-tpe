@@ -13,9 +13,9 @@ public class Trajectory {
 
     private final DateTime date;
 
-    private int tpos;
+    private long tpos;
 
-    public Trajectory(long id, int userId, Venue venue, DateTime date, int tpos) {
+    public Trajectory(long id, int userId, Venue venue, DateTime date, long tpos) {
         this.id = id;
         this.userId = userId;
         this.venue = venue;
@@ -39,7 +39,7 @@ public class Trajectory {
         return date;
     }
 
-    public int getTpos() {
+    public long getTpos() {
         return tpos;
     }
 
