@@ -131,6 +131,7 @@ public class GraphFramesQueryExecutor {
                 .filter("timestart=timeend")
                 .filter("timeend=utctimestamp")
                 .filter("venueId1=venueId2")
+                .filter("id1<>id2")
                 .selectExpr("id1 as idFrom", "id2 as idTo");
 
         //generar TrajStep
