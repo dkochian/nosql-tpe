@@ -15,14 +15,12 @@ import org.graphframes.GraphFrame;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.apache.spark.sql.functions.collect_list;
-import static org.apache.spark.sql.functions.max;
-import static org.apache.spark.sql.functions.min;
+import static org.apache.spark.sql.functions.*;
 
 
 public class GraphFramesQueryExecutor {
 
-    private static final String FILE_NAME_INPUT = "Trajectories_testing";
+    private static final String FILE_NAME_INPUT = "trajectories_ss";
 
     public static void main(String[] args) {
 
@@ -70,11 +68,13 @@ public class GraphFramesQueryExecutor {
     private static Dataset<Row> Query2(GraphFrame graph) {
         Dataset<Row> start = graph.find("(s1)-[e11]->(v1); (v1)-[e12]->(c1); (c1)-[e13]->(cs1)")
                 .filter("s1.label='Stop'")
-                .filter("e11.label='isVenue'")
                 .filter("v1.label='Venues'")
                 .filter("c1.label='Categories'")
                 .filter("cs1.label='Category'")
                 .filter("cs1.secondId='Home'")
+                .filter("e11.label='isVenue'")
+                .filter("e12.label='hasCategory'")
+                .filter("e13.label='subCategoryOf'")
                 .selectExpr("s1.userId","s1.utctimestamp as timestart","s1.tpos as posstart")
                 .distinct();
         Dataset<Row> end = graph.find("(s1)-[e11]->(v1); (v1)-[e12]->(c1); (c1)-[e13]->(cs1)")
@@ -83,6 +83,9 @@ public class GraphFramesQueryExecutor {
                 .filter("c1.label='Categories'")
                 .filter("cs1.label='Category'")
                 .filter("cs1.secondId='Airport'")
+                .filter("e11.label='isVenue'")
+                .filter("e12.label='hasCategory'")
+                .filter("e13.label='subCategoryOf'")
                 .selectExpr("s1.userId","s1.utctimestamp as timeend","s1.tpos as posend")
                 .distinct();
         return start.join(end,"userId")
