@@ -22,6 +22,8 @@ public class OutputWriter {
         try (final PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(path, true)))) {
             for (Trajectory t : trajectoryPrunned)
                 printWriter
+                        .append(String.valueOf(t.getId()))
+                        .append("\t")
                         .append(String.valueOf(t.getUserId()))
                         .append("\t")
                         .append(String.valueOf(t.getVenue().getId()))
