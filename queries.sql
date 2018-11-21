@@ -155,7 +155,7 @@ CREATE VIEW tmp AS (SELECT t.userid, t.venueid, t.tpos, utctimestamp, c.venuecat
                     FROM trajectoriesssprunned AS t
                            LEFT JOIN categories as c ON t.venueid = c.venueid);
 /* QUERY 1*/
-WITH RECURSIVE q1 AS (SELECT userid, ARRAY[cattype] AS cattypePath, utctimestamp, tpos, ARRAY[tpos] AS tposPath
+/*WITH RECURSIVE q1 AS (SELECT userid, ARRAY[cattype] AS cattypePath, utctimestamp, tpos, ARRAY[tpos] AS tposPath
                       FROM tmp
 
     UNION
@@ -166,12 +166,11 @@ WITH RECURSIVE q1 AS (SELECT userid, ARRAY[cattype] AS cattypePath, utctimestamp
 
 SELECT q1.userid, q1.tposPath[1] as initialTpos
 FROM q1
-WHERE q1.cattypePath = ARRAY['Home', 'Station', 'Airport'];
-
+WHERE q1.cattypePath = ARRAY['Home', 'Station', 'Airport'];*/
 
 /* QUERY 2*/
 
-/*WITH RECURSIVE q2 AS (SELECT userid, ARRAY[venuecategory] AS path, ARRAY[cattype] AS cattypePath, utctimestamp, tpos
+WITH RECURSIVE q2 AS (SELECT userid, ARRAY[venuecategory] AS path, ARRAY[cattype] AS cattypePath, utctimestamp, tpos
                       FROM tmp
 
     UNION
@@ -182,11 +181,11 @@ WHERE q1.cattypePath = ARRAY['Home', 'Station', 'Airport'];
       AND (q.tpos - 1 = t.tpos)
       )
 
-SELECT q2.userid, q2.utctimestamp, max(q2.cattypePath) AS cattypePath
+SELECT q2.userid, date_part('day', q2.utctimestamp), max(q2.cattypePath) AS cattypePath
 FROM q2
 WHERE ARRAY['Home', 'Airport'] <@ q2.cattypePath
   AND array_position(q2.cattypePath, 'Home') < array_position(q2.cattypePath, 'Airport')
-GROUP BY q2.userid, q2.utctimestamp;*/
+GROUP BY q2.userid, date_part('day', q2.utctimestamp);
 
 /* QUERY 3*/
 
