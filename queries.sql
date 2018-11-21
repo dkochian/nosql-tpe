@@ -226,6 +226,7 @@ SELECT q4.userid, q4.utctimestamp, q4.path [ 1 ] as StopInicial, q4.path [ trayl
 FROM q4
        INNER JOIN (SELECT q4.userid, max(array_length(q4.path, 1)) as traylength
                    FROM q4
+                   WHERE array_length(path, 1) > 1
                    GROUP BY q4.userid) AS innerq4 ON q4.userid = innerq4.userid
 WHERE array_length(q4.path, 1) = innerq4.traylength
 ORDER BY q4.userid;*/
