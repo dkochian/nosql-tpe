@@ -7,6 +7,8 @@ import ar.edu.itba.nosql.utils.IOManager;
 import ar.edu.itba.nosql.utils.OutputWriter;
 import ar.edu.itba.nosql.utils.Point;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +20,8 @@ import java.util.Queue;
 public class Pruning {
 
     private static final Logger logger = LoggerFactory.getLogger(Pruning.class);
+
+    private static final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
 
     public static void main(String[] args) {
         final Configuration configuration = IOManager.getConfiguration();
@@ -51,8 +55,8 @@ public class Pruning {
                         while (venue.next()) {
                             Venue auxVenue = new Venue(venue.getString(1), new Point<>(venue.getDouble(3),
                                     venue.getDouble(4)), venue.getString(2), venue.getString(5));
-                            q.add(new Trajectory(userTrajectory.getLong(5), userTrajectory.getInt(1), auxVenue, new DateTime(userTrajectory.getDate(3)), userTrajectory.getLong(4)));
 
+                            q.add(new Trajectory(userTrajectory.getLong(5), userTrajectory.getInt(1), auxVenue, new DateTime(formatter.parseDateTime(userTrajectory.getString(3))), userTrajectory.getLong(4)));
                         }
                     }
 

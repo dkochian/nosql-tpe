@@ -17,7 +17,7 @@ public class Configuration {
     private final String password;
 
     public Configuration() {
-        tableName = "trajectoriesss";
+        tableName = "trajectoriessl";
         userAmount = 1000;
         visitedVenues = 100;
         velocity = 36.0;
