@@ -33,7 +33,7 @@ public class GraphFramesQueryExecutor {
         Pair<Dataset<Row>, Dataset<Row>> nodesAndEdges = LoadNodesAndEdges(sqlContext);
 
         GraphFrame graph = GraphFrame.apply(nodesAndEdges.getKey(), nodesAndEdges.getValue());
-        
+
         Query1(graph).show(Integer.MAX_VALUE);
 
         sparkContext.close();
@@ -59,7 +59,6 @@ public class GraphFramesQueryExecutor {
                 .filter("cat1.label='Categories' and cat2.label='Categories' and cat3.label='Categories'")
                 .filter("c1.label='Category' and c2.label='Category' and c3.label='Category'")
                 .filter("c1.secondId='Home' and c2.secondId='Station' and c3.secondId='Airport'")
-                .filter("e12.label='hasCategory' and e21.label='hasCategory' and e31.label='hasCategory'")
                 .distinct()
                 .groupBy("s1.userId")
                 .agg(collect_list("s1.tpos").alias("from"))
