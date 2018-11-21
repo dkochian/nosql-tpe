@@ -7,10 +7,17 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.types.StructType;
 import org.graphframes.GraphFrame;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.apache.spark.sql.functions.collect_list;
 import static org.apache.spark.sql.functions.max;
+import static org.apache.spark.sql.functions.min;
 
 
 public class GraphFramesQueryExecutor {
@@ -27,7 +34,7 @@ public class GraphFramesQueryExecutor {
 
         GraphFrame graph = GraphFrame.apply(nodesAndEdges.getKey(), nodesAndEdges.getValue());
 
-        Query4(graph).show(Integer.MAX_VALUE);
+        Query3(graph, sqlContext).show(Integer.MAX_VALUE);
 
         sparkContext.close();
     }
@@ -85,6 +92,66 @@ public class GraphFramesQueryExecutor {
 
     }
 
+    private static Dataset<Row> Query3(GraphFrame graph, SQLContext sqlContext) {
+        Dataset<Row> start = graph.find("(s1)-[e11]->(v1)")
+                .filter("s1.label='Stop'")
+                .filter("e11.label='isVenue'")
+                .filter("v1.label='Venues'")
+                .selectExpr("s1.id as id1", "s1.userId","s1.utctimestamp as timestart","s1.tpos as posstart", "v1.secondId as venueId1")
+                .distinct();
+        Dataset<Row> end = graph.find("(s1)-[e11]->(v1)")
+                .filter("s1.label='Stop'")
+                .filter("e11.label='isVenue'")
+                .filter("v1.label='Venues'")
+                .selectExpr("s1.id as id2", "s1.userId","s1.utctimestamp as timeend","s1.tpos as posend", "v1.secondId as venueId2")
+                .distinct();
+
+        Dataset<Row> maxTpos = graph.find("(s1)-[e11]->(v1)")
+                .filter("s1.label='Stop'")
+                .filter("e11.label='isVenue'")
+                .filter("v1.label='Venues'")
+                .groupBy("s1.userId", "s1.utctimestamp")
+                .agg(max("s1.tpos").alias("maxTpo"))
+                .selectExpr("userId", "utctimestamp as utc1", "maxTpo");
+
+        Dataset<Row> minTpos = graph.find("(s1)-[e11]->(v1)")
+                .filter("s1.label='Stop'")
+                .filter("e11.label='isVenue'")
+                .filter("v1.label='Venues'")
+                .groupBy("s1.userId", "s1.utctimestamp")
+                .agg(min("s1.tpos").alias("minTpo"))
+                .selectExpr("userId", "utctimestamp as utc2", "minTpo");
+
+        Dataset<Row> aggTpos = maxTpos.join(minTpos, "userId")
+                .filter("utc1=utc2")
+                .selectExpr("userId", "utc1 as utctimestamp", "minTpo", "maxTpo");
+
+        Dataset<Row> fromTo =  start.join(end,"userId").join(aggTpos, "userId")
+                .filter("posstart=minTpo")
+                .filter("posend=maxTpo")
+                .filter("timestart=timeend")
+                .filter("timeend=utctimestamp")
+                .filter("venueId1=venueId2")
+                .selectExpr("id1 as idFrom", "id2 as idTo");
+
+        //generar TrajStep
+        Dataset<Row> output = sqlContext.createDataFrame(new ArrayList<>(), CreateEdgeSchema());
+        fromTo.toJavaRDD().foreach(x ->
+            output.union(graph.bfs().fromExpr("id1='" + x.get(0) + "'").toExpr("id2='" + x.get(1) + "'").run()))    ;
+
+        return fromTo;
+    }
+
+    private static StructType CreateEdgeSchema() {
+        List<StructField> edgeFields = new ArrayList<>();
+
+        edgeFields.add(DataTypes.createStructField("src", DataTypes.LongType, false));
+        edgeFields.add(DataTypes.createStructField("dst", DataTypes.LongType, false));
+        edgeFields.add(DataTypes.createStructField("label", DataTypes.StringType, false));
+
+        return DataTypes.createStructType(edgeFields);
+    }
+
     private static Dataset<Row> Query4(GraphFrame graph) {
 
         Dataset<Row> start = graph.vertices().filter("label = 'Stop'")
@@ -107,9 +174,5 @@ public class GraphFramesQueryExecutor {
                 .join(longestLength,"userId")
                 .filter("length>=maxLength")
                 .selectExpr("userId","time","posstart","posend");
-
-
-
-
     }
 }
