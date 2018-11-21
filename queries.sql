@@ -174,11 +174,11 @@ WITH RECURSIVE q2 AS (SELECT userid, ARRAY[venuecategory] AS path, ARRAY[cattype
                       FROM tmp
 
     UNION
-    SELECT t.userid, t.venuecategory || path, t.cattype || cattypePath, t.utctimestamp, t.tpos
-    FROM tmp as t
-           INNER JOIN q2 AS q ON t.userid = q.userid
-    WHERE DATE_PART('day', t.utctimestamp - q.utctimestamp) = 0
-      AND (q.tpos - 1 = t.tpos)
+    SELECT ta.userid, ta.venuecategory || path, ta.cattype || cattypePath, ta.utctimestamp, ta.tpos
+    FROM tmp as ta
+           INNER JOIN q2 AS q ON ta.userid = q.userid
+    WHERE DATE_PART('day', ta.utctimestamp) = DATE_PART('day',q.utctimestamp)
+      AND (q.tpos - 1 = ta.tpos)
       )
 
 SELECT q2.userid, date_part('day', q2.utctimestamp), max(q2.cattypePath) AS cattypePath
@@ -197,7 +197,7 @@ GROUP BY q2.userid, date_part('day', q2.utctimestamp);
     SELECT t.userid, t.venueid || path, t.utctimestamp, t.tpos, array_length(t.venueid || path, 1) as len
     FROM tmp as t
            INNER JOIN q3 AS q ON t.userid = q.userid
-    WHERE DATE_PART('day', t.utctimestamp - q.utctimestamp) = 0
+    WHERE DATE_PART('day', t.utctimestamp) = DATE_PART ('day', q.utctimestamp)
       AND (q.tpos - 1 = t.tpos)),
                maximals AS (SELECT userid, utctimestamp, MAX(len) as max_len
                             FROM q3
@@ -219,7 +219,7 @@ WHERE q.len = m.max_len
     SELECT t.userid, t.venuecategory || path, t.utctimestamp, t.tpos
     FROM tmp as t
            INNER JOIN q4 AS q ON t.userid = q.userid
-    WHERE DATE_PART('day', t.utctimestamp - q.utctimestamp) = 0
+    WHERE DATE_PART('day', t.utctimestamp) = DATE_PART ('day', q.utctimestamp)
       AND (q.tpos - 1 = t.tpos))
 
 SELECT q4.userid, q4.utctimestamp, q4.path [ 1 ] as StopInicial, q4.path [ traylength ] as StopFinal
