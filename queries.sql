@@ -152,10 +152,10 @@ INSERT INTO trajectoriesTest
 VALUES (10, '3', to_timestamp('2018-12-04 11:11:11', 'YYYY-MM-DD hh24:mi:ss'), 4);*/
 
 CREATE VIEW tmp AS (SELECT t.userid, t.venueid, t.tpos, utctimestamp, c.venuecategory, c.cattype
-                    FROM trajectoriesTest AS t
-                           LEFT JOIN categoriesTest as c ON t.venueid = c.venueid);
+                    FROM trajectoriesssprunned AS t
+                           LEFT JOIN categories as c ON t.venueid = c.venueid);
 /* QUERY 1*/
-/*WITH RECURSIVE q1 AS (SELECT userid, ARRAY[cattype] AS cattypePath, utctimestamp, tpos, ARRAY[tpos] AS tposPath
+WITH RECURSIVE q1 AS (SELECT userid, ARRAY[cattype] AS cattypePath, utctimestamp, tpos, ARRAY[tpos] AS tposPath
                       FROM tmp
 
     UNION
@@ -164,9 +164,10 @@ CREATE VIEW tmp AS (SELECT t.userid, t.venueid, t.tpos, utctimestamp, c.venuecat
            INNER JOIN q1 AS q ON t.userid = q.userid
     WHERE (q.tpos - 1 = t.tpos))
 
-SELECT q1.userid, q1.tposPath
+SELECT q1.userid, q1.tposPath[1] as initialTpos
 FROM q1
-WHERE q1.cattypePath = ARRAY['Home','Station','Airport'];*/
+WHERE q1.cattypePath = ARRAY['Home', 'Station', 'Airport'];
+
 
 /* QUERY 2*/
 
