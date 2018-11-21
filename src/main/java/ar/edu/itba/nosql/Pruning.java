@@ -68,8 +68,6 @@ public class Pruning {
                     while (!q.isEmpty()) {
                         final Trajectory current = q.poll();
 
-                        logger.debug("{}|{} - {}|{}", current.getDate(), previous.getDate(), velocity, current.getVelocity(previous));
-
                         if (!previous.getVenue().equals(current.getVenue()) && velocity > current.getVelocity(previous)) {
                             current.setTpos(++tpos);
                             userTrajectoryPruned.add(current);

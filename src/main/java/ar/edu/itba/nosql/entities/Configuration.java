@@ -20,7 +20,7 @@ public class Configuration {
         tableName = "trajectoriessl";
         userAmount = 1000;
         visitedVenues = 100;
-        velocity = 10000.0;
+        velocity = 36.0;
 
         url = "jdbc:postgresql://127.0.0.1:5453/grupo1"; // "jdbc:postgresql://node3.it.itba.edu.ar:5453/grupo1";
         user = "grupo1";
