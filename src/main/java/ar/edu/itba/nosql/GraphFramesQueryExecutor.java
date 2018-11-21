@@ -33,8 +33,8 @@ public class GraphFramesQueryExecutor {
         Pair<Dataset<Row>, Dataset<Row>> nodesAndEdges = LoadNodesAndEdges(sqlContext);
 
         GraphFrame graph = GraphFrame.apply(nodesAndEdges.getKey(), nodesAndEdges.getValue());
-
-        Query3(graph, sqlContext).show(Integer.MAX_VALUE);
+        
+        Query1(graph).show(Integer.MAX_VALUE);
 
         sparkContext.close();
     }
@@ -92,7 +92,7 @@ public class GraphFramesQueryExecutor {
 
     }
 
-    private static Dataset<Row> Query3(GraphFrame graph, SQLContext sqlContext) {
+    private static Dataset<Row> Query3(GraphFrame graph) {
         Dataset<Row> start = graph.find("(s1)-[e11]->(v1)")
                 .filter("s1.label='Stop'")
                 .filter("e11.label='isVenue'")
@@ -135,9 +135,14 @@ public class GraphFramesQueryExecutor {
                 .selectExpr("id1 as idFrom", "id2 as idTo");
 
         //generar TrajStep
-        Dataset<Row> output = sqlContext.createDataFrame(new ArrayList<>(), CreateEdgeSchema());
-        fromTo.toJavaRDD().foreach(x ->
-            output.union(graph.bfs().fromExpr("id1='" + x.get(0) + "'").toExpr("id2='" + x.get(1) + "'").run()))    ;
+
+        //graph.shortestPaths().landmarks()
+
+//        Integer[] probando = {1, 2};
+//        for (Integer i: probando)
+//            output.union(graph.bfs().fromExpr("id=" + i).toExpr("id=20" + i).run());
+////        fromTo.foreach(x ->
+////            output.union(graph.bfs().fromExpr("id1='" + x.get(0) + "'").toExpr("id2='" + x.get(1) + "'").run()));
 
         return fromTo;
     }
