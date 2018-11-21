@@ -10,6 +10,8 @@ import java.util.Queue;
 
 public class OutputWriter {
 
+    private int counter = 0;
+
     public OutputWriter() {
         final File file = new File("output");
         if (!file.exists())
@@ -33,7 +35,8 @@ public class OutputWriter {
                         .append(String.valueOf(t.getTpos()))
                         .append("\r\n");
 
-            printWriter.flush();
+            if(counter++ % 1000 == 0)
+                printWriter.flush();
         }
     }
 
