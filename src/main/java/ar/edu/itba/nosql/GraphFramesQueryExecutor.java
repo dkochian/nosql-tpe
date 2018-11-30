@@ -20,7 +20,7 @@ import static org.apache.spark.sql.functions.*;
 
 public class GraphFramesQueryExecutor {
 
-    private static final String FILE_NAME_INPUT = "trajectories_ss";
+    private static final String FILE_NAME_INPUT = "trajectories_ls";
 
     public static void main(String[] args) {
 

@@ -81,6 +81,13 @@
         </dependency>
 
         <dependency>
+            <groupId>neo4j-contrib</groupId>
+            <artifactId>neo4j-spark-connector</artifactId>
+            <version>2.2.1-M5</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_2.11</artifactId>
             <version>2.3.2</version>
