@@ -7,13 +7,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructField;
-import org.apache.spark.sql.types.StructType;
 import org.graphframes.GraphFrame;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.apache.spark.sql.functions.*;
 
@@ -148,16 +142,6 @@ public class GraphFramesQueryExecutor {
 ////            output.union(graph.bfs().fromExpr("id1='" + x.get(0) + "'").toExpr("id2='" + x.get(1) + "'").run()));
 
         return fromTo;
-    }
-
-    private static StructType CreateEdgeSchema() {
-        List<StructField> edgeFields = new ArrayList<>();
-
-        edgeFields.add(DataTypes.createStructField("src", DataTypes.LongType, false));
-        edgeFields.add(DataTypes.createStructField("dst", DataTypes.LongType, false));
-        edgeFields.add(DataTypes.createStructField("label", DataTypes.StringType, false));
-
-        return DataTypes.createStructType(edgeFields);
     }
 
     private static Dataset<Row> Query4(GraphFrame graph) {

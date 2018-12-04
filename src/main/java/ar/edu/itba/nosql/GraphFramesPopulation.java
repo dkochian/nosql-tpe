@@ -65,7 +65,7 @@ public class GraphFramesPopulation {
         sparkContext.close();
     }
 
-    private static Pair<Dataset<Row>, Dataset<Row>> LoadVenuesAndTrajectories(SQLContext sqlContext) {
+    public static Pair<Dataset<Row>, Dataset<Row>> LoadVenuesAndTrajectories(SQLContext sqlContext) {
 
         StructType trajectorySchema = new StructType(new StructField[] {
                 DataTypes.createStructField("id",DataTypes.LongType, false),
