@@ -28,6 +28,8 @@ public class Neo4jSparkConnectorMain {
 	private static final Set<String> categories = new HashSet<>();
 	private static final Set<String> cattypes = new HashSet<>();
 
+	private static boolean populate = true;
+
 	private static Converter converter = new Converter();
 
  	public static void main (String[] args){
@@ -42,10 +44,16 @@ public class Neo4jSparkConnectorMain {
 
 		Neo4j neo = new Neo4j(jsc.sc());
 
-		Pair<Dataset<Row>, Dataset<Row>> files = GraphFramesPopulation.LoadVenuesAndTrajectories(sqlContext);
+		if (populate) {
+			//clear DB
+			neo.cypher("MATCH (n)\n" +
+							"DETACH DELETE n", new scala.collection.immutable.HashMap<>());
 
-		PopulateUsingVenues(neo, files.getValue());
-		PopulateUsingTrajectories(neo, files.getKey());
+			Pair<Dataset<Row>, Dataset<Row>> files = GraphFramesPopulation.LoadVenuesAndTrajectories(sqlContext);
+
+			PopulateUsingVenues(neo, files.getValue());
+			PopulateUsingTrajectories(neo, files.getKey());
+		}
 
 		Neo4j nodes = neo.cypher("MATCH (n) RETURN id(n) as id ", new scala.collection.immutable.HashMap<>());
 
