@@ -55,11 +55,18 @@ public class Neo4jSparkConnectorMain {
 			PopulateUsingTrajectories(neo, files.getKey());
 		}
 
-		Neo4j nodes = neo.cypher("MATCH (n) RETURN id(n) as id ", new scala.collection.immutable.HashMap<>());
+		Neo4j nodes = neo.cypher("MATCH (s:Stop) RETURN s.id, null as secondId, s.userId, s.utctimestamp, s.tpos, type(s) as label" +
+						"UNION" +
+						"MATCH (v:Venue) RETURN id(v), v.id as secondId, null, null, null, type(v) as label" +
+						"UNION" +
+						"MATCH (c:Categories) RETURN id(c), c.name as secondId, null, null, null, type(c) as label" +
+						"UNION" +
+						"MATCH (c:Category) RETURN id(c), c.name as secondId, null, null, null, type(c) as label",
+				new scala.collection.immutable.HashMap<>());
 
 		Dataset<Row> nodesdf = nodes.loadDataFrame();
 
-		Neo4j edges = neo.cypher("MATCH (n)-[x]->(n1) RETURN id(n) as src, type(x) as mylabel, id(n1) as dst ",
+		Neo4j edges = neo.cypher("MATCH (n)-[x]->(n1) RETURN id(n) as src, type(x) as label, id(n1) as dst ",
 				new scala.collection.immutable.HashMap<>());
 
 		Dataset<Row> edgesdf = edges.loadDataFrame();
