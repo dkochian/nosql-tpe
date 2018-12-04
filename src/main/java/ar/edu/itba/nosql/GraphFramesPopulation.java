@@ -33,10 +33,10 @@ public class GraphFramesPopulation {
     private static final Map<String, Long> categoriesId = new HashMap<>();
     private static final Map<String, Long> cattypeId = new HashMap<>();
 
-    private static final String TRAJECTORIES_FILE_NAME_INPUT = "prunned.tsv";
+    private static final String TRAJECTORIES_FILE_NAME_INPUT = "prunned_trajectoriesss.tsv";
     private static final String VENUES_FILE_NAME_INPUT = "categories.tsv";
 
-    private static final String FILE_NAME_OUTPUT = "Trajectories_testing";
+    private static final String FILE_NAME_OUTPUT = "Trajectories_ss";
 
 
     public static void main(String[] args) {
