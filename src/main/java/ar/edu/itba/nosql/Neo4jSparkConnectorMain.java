@@ -55,15 +55,15 @@ public class Neo4jSparkConnectorMain {
 			PopulateUsingTrajectories(neo, files.getKey());
 		}
 
-		Neo4j nodes = neo.cypher("MATCH (s:Stop) RETURN s.id, null as secondId, s.userId, s.utctimestamp, s.tpos, type(s) as label" +
-						"UNION" +
-						"MATCH (v:Venue) RETURN id(v), v.id as secondId, null, null, null, type(v) as label" +
-						"UNION" +
-						"MATCH (c:Categories) RETURN id(c), c.name as secondId, null, null, null, type(c) as label" +
-						"UNION" +
-						"MATCH (c:Category) RETURN id(c), c.name as secondId, null, null, null, type(c) as label",
+		Neo4j nodes = neo.cypher("MATCH (s:Stop) RETURN s.id as id, null as secondId, s.userId as userId, s.utctimestamp as utctimestamp, s.tpos as tpos, labels(s) as label\n" +
+						"UNION\n" +
+						"MATCH (v:Venue) RETURN id(v) as id, v.id as secondId, null as userId, null as utctimestamp, null as tpos, labels(v) as label\n" +
+						"UNION\n" +
+						"MATCH (c:Categories) RETURN id(c) as id, c.name as secondId, null as userId, null as utctimestamp, null as tpos, labels(c) as label\n" +
+						"UNION\n" +
+						"MATCH (c:Category) RETURN id(c) as id, c.name as secondId, null as userId, null as utctimestamp, null as tpos, labels(c) as label",
 				new scala.collection.immutable.HashMap<>());
-
+		
 		Dataset<Row> nodesdf = nodes.loadDataFrame();
 
 		Neo4j edges = neo.cypher("MATCH (n)-[x]->(n1) RETURN id(n) as src, type(x) as label, id(n1) as dst ",
@@ -148,7 +148,7 @@ public class Neo4jSparkConnectorMain {
 		Map<String, Object> params = new HashMap<>();
 		params.put("trjId", t.getLong(PARSE_TRJ_ID));
 		params.put("userId", t.getLong(PARSE_TRJ_USER_ID));
-		params.put("date", t.getDate(PARSE_TRJ_DATE));
+		params.put("date", t.getDate(PARSE_TRJ_DATE).toString());
 		params.put("tpos", t.getLong(PARSE_TRJ_TPOS));
 		params.put("venueId", t.getString(PARSE_TRJ_VENUE_ID));
 		params.put("prevTrjId", prevTrajId);
