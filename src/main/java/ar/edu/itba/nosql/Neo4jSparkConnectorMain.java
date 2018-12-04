@@ -1,9 +1,6 @@
 package ar.edu.itba.nosql;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import ar.edu.itba.nosql.utils.Converter;
 import org.apache.commons.math3.util.Pair;
@@ -11,6 +8,8 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
 import org.graphframes.GraphFrame;
 import org.neo4j.spark.*;
+import scala.Tuple2;
+import scala.collection.Seq;
 
 
 public class Neo4jSparkConnectorMain {
@@ -63,8 +62,8 @@ public class Neo4jSparkConnectorMain {
 						"UNION\n" +
 						"MATCH (c:Category) RETURN id(c) as id, c.name as secondId, null as userId, null as utctimestamp, null as tpos, labels(c) as label",
 				new scala.collection.immutable.HashMap<>());
-		
-		Dataset<Row> nodesdf = nodes.loadDataFrame();
+
+		Dataset<Row> nodesdf = nodes.loadDataFrame(GraphFramesSchema());
 
 		Neo4j edges = neo.cypher("MATCH (n)-[x]->(n1) RETURN id(n) as src, type(x) as label, id(n1) as dst ",
 				new scala.collection.immutable.HashMap<>());
@@ -87,7 +86,7 @@ public class Neo4jSparkConnectorMain {
 	private static final void PopulateUsingVenues(final Neo4j neo, final Dataset<Row> venues) {
 
 		for (Row v : venues.collectAsList()) {
-			scala.collection.immutable.Map params = populateVenueParams(v);
+			scala.collection.immutable.Map params = PopulateVenueParams(v);
 
 			neo.cypher("CREATE (n:Venue { id: venueId })", params);
 
@@ -111,7 +110,7 @@ public class Neo4jSparkConnectorMain {
 		}
 	}
 
-	private static scala.collection.immutable.Map populateVenueParams(Row v) {
+	private static scala.collection.immutable.Map PopulateVenueParams(Row v) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("venueId", v.getString(PARSE_VNU_ID));
 		params.put("category", v.getString(PARSE_VNU_CATEGORY));
@@ -124,7 +123,7 @@ public class Neo4jSparkConnectorMain {
 		long prevUserId = -1L;
 		long prevTrajId = -1L;
 		for (Row t : trajectories.collectAsList()) {
-			scala.collection.immutable.Map params = populateTrajectoryParams(t, prevTrajId);
+			scala.collection.immutable.Map params = PopulateTrajectoryParams(t, prevTrajId);
 
 			neo.cypher("CREATE (n:Stop { id: trjId, userId: userId, utctimestamp: date, tpos: tpos })", params);
 
@@ -144,7 +143,7 @@ public class Neo4jSparkConnectorMain {
 		}
 	}
 
-	private static scala.collection.immutable.Map populateTrajectoryParams(Row t, long prevTrajId) {
+	private static scala.collection.immutable.Map PopulateTrajectoryParams(Row t, long prevTrajId) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("trjId", t.getLong(PARSE_TRJ_ID));
 		params.put("userId", t.getLong(PARSE_TRJ_USER_ID));
@@ -155,5 +154,16 @@ public class Neo4jSparkConnectorMain {
 
 		return converter.convert(params);
 
+	}
+
+	private static Seq<Tuple2<String, String>> GraphFramesSchema() {
+		List<Tuple2<String, String>> schema = new LinkedList<>();
+		schema.add(new Tuple2<>("id", "long"));
+		schema.add(new Tuple2<>("secondId", "string"));
+		schema.add(new Tuple2<>("userId", "long"));
+		schema.add(new Tuple2<>("utctimestamp", "string"));
+		schema.add(new Tuple2<>("tpos", "long"));
+		schema.add(new Tuple2<>("label", "string"));
+		return scala.collection.JavaConversions.asScalaBuffer(schema).toSeq();
 	}
 }
