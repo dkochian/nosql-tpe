@@ -8,14 +8,13 @@ import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SparkSession;
 import org.graphframes.GraphFrame;
 
-import static org.apache.spark.sql.functions.collect_list;
 import static org.apache.spark.sql.functions.count;
 import static org.apache.spark.sql.functions.max;
 
 public class GraphFramesFinalExecutor {
 
-    private static final String FILE_NAME_INPUT = "mapping";
     private static final Integer QUERY_NUMBER = 1;
+    private static final String FILE_NAME_INPUT = "mapping";
 
     public static void main(String[] args) {
 
@@ -33,6 +32,8 @@ public class GraphFramesFinalExecutor {
             Query1(graph).show(Integer.MAX_VALUE);
         else if (QUERY_NUMBER == 2)
             Query2(graph).show(Integer.MAX_VALUE);
+        else
+            QueryTesting(graph).show(Integer.MAX_VALUE);
 
         System.out.println("System.currentTimeMillis() - start = " + (System.currentTimeMillis() - start));
 
@@ -45,7 +46,6 @@ public class GraphFramesFinalExecutor {
                 .groupBy("s.userId")
                 .agg(max("s.tpos").alias("length"))
                 .select("userId", "length");
-
     }
 
     private static Dataset<Row> Query2(GraphFrame graph) {
@@ -61,16 +61,8 @@ public class GraphFramesFinalExecutor {
     private static Dataset<Row> QueryTesting(GraphFrame graph) {
         return graph.find("(s)")
                 .filter("s.label='Stop'")
-                .agg(count("s.id").alias("count"))
-                .select("count");
+                .select("s");
     }
-
-    private static Dataset<Row> QueryTesting2(GraphFrame graph) {
-        return graph.find("(s)")
-                .filter("s.label='Stop'")
-                .select( "s");
-    }
-
 
     private static Pair<Dataset<Row>, Dataset<Row>> LoadNodesAndEdges(SQLContext sqlContext) {
         Dataset<Row> nodes = sqlContext.read().parquet("hdfs:///user/maperazzo/" + FILE_NAME_INPUT + "_nodes");

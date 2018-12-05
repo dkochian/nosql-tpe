@@ -28,7 +28,7 @@ public class Neo4jSparkConnectorMain {
         Neo4j neo = new Neo4j(jsc.sc());
 
 
-        Neo4j stops = neo.cypher("MATCH (s:Stop) RETURN s.id as id, null as secondId, s.userId as userId, s.utctimestamp as utctimestamp, s.tpos as tpos, labels(s)[0] as label;",
+        Neo4j stops = neo.cypher("MATCH (s:Stop) RETURN id(s) as id, s.id.toString() as secondId, s.userId as userId, s.utctimestamp as utctimestamp, s.tpos as tpos, labels(s)[0] as label;",
                 new scala.collection.immutable.HashMap<>());
 
         Dataset<Row> stopsdf = stops.loadDataFrame();
