@@ -16,7 +16,7 @@ import java.util.*;
 
 import static org.neo4j.driver.v1.Values.parameters;
 
-public class Neo4jPopulation implements AutoCloseable {
+public class Neo4jPopulation extends Population implements AutoCloseable {
 
     private static final Driver driver = GraphDatabase.driver("bolt://node1.it.itba.edu.ar:7689", AuthTokens.basic("jdantur", "jdantur") );
 
@@ -35,6 +35,9 @@ public class Neo4jPopulation implements AutoCloseable {
 
     private static Converter converter = new Converter();
 
+    private static final String TRAJECTORIES_FILE_NAME_INPUT = "prunned_trajectoriesss.tsv";
+    private static final String VENUES_FILE_NAME_INPUT = "categories.tsv";
+
 
     public static void main (String[] args) {
 
@@ -49,7 +52,8 @@ public class Neo4jPopulation implements AutoCloseable {
             //empty database
             session.writeTransaction((tx -> tx.run("MATCH (n) DETACH DELETE n;")));
 
-            Pair<Dataset<Row>, Dataset<Row>> files = GraphFramesPopulation.LoadVenuesAndTrajectories(sqlContext);
+            Pair<Dataset<Row>, Dataset<Row>> files = LoadVenuesAndTrajectories(sqlContext, TRAJECTORIES_FILE_NAME_INPUT,
+                    VENUES_FILE_NAME_INPUT);
 
             PopulateUsingVenues(session, files.getValue());
             PopulateUsingTrajectories(session, files.getKey());

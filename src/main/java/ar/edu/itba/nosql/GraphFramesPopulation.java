@@ -13,7 +13,7 @@ import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
 
-public class GraphFramesPopulation {
+public class GraphFramesPopulation extends Population {
 
     private static final int PARSE_TRJ_ID = 0;
     private static final int PARSE_TRJ_USER_ID = 1;
@@ -45,7 +45,8 @@ public class GraphFramesPopulation {
         JavaSparkContext sparkContext= new JavaSparkContext(sp.sparkContext());
         SQLContext sqlContext = new SQLContext(sp);
 
-        Pair<Dataset<Row>, Dataset<Row>> files = LoadVenuesAndTrajectories(sqlContext);
+        Pair<Dataset<Row>, Dataset<Row>> files = LoadVenuesAndTrajectories(sqlContext, TRAJECTORIES_FILE_NAME_INPUT,
+                VENUES_FILE_NAME_INPUT);
 
         List<Row> nodes = new ArrayList<>();
         List<Row> edges = new ArrayList<>();
@@ -63,33 +64,6 @@ public class GraphFramesPopulation {
         write(nodesDF, edgesDF);
 
         sparkContext.close();
-    }
-
-    public static Pair<Dataset<Row>, Dataset<Row>> LoadVenuesAndTrajectories(SQLContext sqlContext) {
-
-        StructType trajectorySchema = new StructType(new StructField[] {
-                DataTypes.createStructField("id",DataTypes.LongType, false),
-                DataTypes.createStructField("userid",DataTypes.LongType, false),
-                DataTypes.createStructField("venueid",DataTypes.StringType, false),
-                DataTypes.createStructField("date",DataTypes.DateType, false),
-                DataTypes.createStructField("tpos",DataTypes.LongType, false)});
-
-        StructType venueSchema = new StructType(new StructField[] {
-                DataTypes.createStructField("id", DataTypes.StringType, false),
-                DataTypes.createStructField("category",DataTypes.StringType, false),
-                DataTypes.createStructField("longitude",DataTypes.DoubleType, false),
-                DataTypes.createStructField("latitude",DataTypes.DoubleType, false),
-                DataTypes.createStructField("cattype",DataTypes.StringType, false)});
-
-        Dataset<Row> trajectories = sqlContext.read().format("csv").option("delimiter","\t").option("header", "false")
-                .schema(trajectorySchema)
-                .load("hdfs:///user/maperazzo/" + TRAJECTORIES_FILE_NAME_INPUT);
-
-        Dataset<Row> venues = sqlContext.read().format("csv").option("delimiter","\t").option("header", "false")
-                .schema(venueSchema)
-                .load("hdfs:///user/maperazzo/" + VENUES_FILE_NAME_INPUT);
-
-        return new Pair(trajectories, venues);
     }
 
     private static void write (Dataset<Row> nodes, Dataset<Row> edges) {
