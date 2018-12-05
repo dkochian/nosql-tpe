@@ -9,6 +9,7 @@ import org.apache.spark.sql.SparkSession;
 import org.graphframes.GraphFrame;
 
 import static org.apache.spark.sql.functions.collect_list;
+import static org.apache.spark.sql.functions.count;
 
 public class GraphFramesFinalExecutor {
 
@@ -24,12 +25,12 @@ public class GraphFramesFinalExecutor {
 
         GraphFrame graph = GraphFrame.apply(nodesAndEdges.getKey(), nodesAndEdges.getValue());
 
-        Query1(graph).show(Integer.MAX_VALUE);
+        //Query1(graph).show(Integer.MAX_VALUE);
 
         sparkContext.close();
     }
 
-    private static Dataset<Row> Query1(GraphFrame graph) {
+    private static Dataset<Row> QueryTesting(GraphFrame graph) {
 
         final Dataset<Row> query1 = graph.find("(s1)-[e11]->(v1); (v1)-[e12]->(cat1); (cat1)-[e13]->(c1); " +
                 "(s2)-[e21]->(v2); (v2)-[e22]->(cat2); (cat2)-[e23]->(c2); " +
