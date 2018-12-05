@@ -124,7 +124,7 @@ public class Neo4jPopulation implements AutoCloseable {
 
     public final static void WriteTrajStep(Session s, Row t, final long prevTrajId) {
         s.writeTransaction((tx -> tx.run("MATCH (s1:Stop),(s2:Stop)\n" +
-                        "WHERE s1.id = $prevTrjId and s2.id = trjId\n" +
+                        "WHERE s1.id = $prevTrjId and s2.id = $trjId\n" +
                         "CREATE (s1)-[r:trajStep]->(s2)\n",
                 parameters("prevTrjId", prevTrajId,
                         "trjId", t.getLong(PARSE_TRJ_ID)))));
